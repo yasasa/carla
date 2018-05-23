@@ -151,12 +151,23 @@ extern "C" {
   /* -- carla_control ------------------------------------------------------- */
   /* ======================================================================== */
 
+  struct carla_agent_control {
+    uint32_t id;
+
+    struct carla_vector3d *waypoints;
+    uint32_t number_of_waypoints;
+
+    float *waypoint_times;
+    uint32_t number_of_waypoint_times;
+  };
+
   struct carla_control {
     float steer;
     float throttle;
     float brake;
     bool hand_brake;
     bool reverse;
+    struct carla_agent_control agent_control;
   };
 
   /* ======================================================================== */

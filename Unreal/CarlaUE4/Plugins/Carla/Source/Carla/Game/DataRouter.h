@@ -17,6 +17,7 @@ class ACarlaPlayerState;
 class ASensor;
 class UAgentComponent;
 struct FVehicleControl;
+struct FAgentControl;
 
 class FDataRouter : private NonCopyable
 {
@@ -62,6 +63,16 @@ public:
   {
     check((Player != nullptr) && (Player->IsPossessingAVehicle()));
     Player->GetPossessedVehicle()->ApplyVehicleControl(VehicleControl);
+  }
+
+  void ApplyAgentControl(const FAgentControl &Control)
+  {
+    for(int i = 0; i < Agents.Num(); i++){
+      if (Agents[i]->GetId() == Control.id){
+        Agents[i]->ApplyAIControl(Control);
+        break;
+      }
+    }
   }
 
   void RestartLevel();

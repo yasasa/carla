@@ -142,9 +142,12 @@ void FServerGameController::Tick(float DeltaSeconds)
   {
     const bool bShouldBlock = CarlaSettings->bSynchronousMode;
     FVehicleControl Control;
-    if (Errc::Error != Server->ReadControl(Control, bShouldBlock))
+    FAgentControl AgentControl;
+
+    if (Errc::Error != Server->ReadControl(Control, AgentControl, bShouldBlock))
     {
       DataRouter.ApplyVehicleControl(Control);
+      DataRouter.ApplyAgentControl(AgentControl);
     } // Here we ignore the error too.
   }
 }

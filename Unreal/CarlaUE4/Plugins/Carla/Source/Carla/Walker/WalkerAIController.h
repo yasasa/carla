@@ -35,13 +35,13 @@ public:
 
   virtual void Tick(float DeltaSeconds) override;
 
-	
+
   virtual FPathFollowingRequestResult MoveTo(
       const FAIMoveRequest& MoveRequest,
       FNavPathSharedPtr* OutPath = nullptr) override;
 
   virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult &Result) override;
-  
+
 
   UFUNCTION(BlueprintCallable)
   void SenseActors(TArray<AActor *> Actors);
@@ -60,7 +60,7 @@ public:
 private:
   void ChangeStatus(EWalkerStatus status);
   void TryResumeMovement();
-  
+
   void TryPauseMovement(bool bItWasRunOver = false);
 
   UFUNCTION()

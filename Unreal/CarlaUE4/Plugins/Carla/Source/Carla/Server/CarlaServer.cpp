@@ -115,7 +115,7 @@ FCarlaServer::ErrorCode FCarlaServer::SendEpisodeReady(const bool bBlocking)
   return ParseErrorCode(carla_write_episode_ready(Server, values, GetTimeOut(TimeOut, bBlocking)));
 }
 
-FCarlaServer::ErrorCode FCarlaServer::ReadControl(FVehicleControl &Control, const bool bBlocking)
+FCarlaServer::ErrorCode FCarlaServer::ReadControl(FVehicleControl &Control, FAgentControl &AgentControl, const bool bBlocking)
 {
   carla_control values;
   auto ec = ParseErrorCode(carla_read_control(Server, values, GetTimeOut(TimeOut, bBlocking)));
@@ -132,7 +132,7 @@ FCarlaServer::ErrorCode FCarlaServer::ReadControl(FVehicleControl &Control, cons
         (values.hand_brake ? TEXT("True") : TEXT("False")),
         (values.reverse ? TEXT("True") : TEXT("False")));
 #endif // CARLA_SERVER_EXTRA_LOG
-    FCarlaEncoder::Decode(values, Control);
+    FCarlaEncoder::Decode(values, Control, AgentControl);
   } else if ((!bBlocking) && (TryAgain == ec)) {
     UE_LOG(LogCarlaServer, Warning, TEXT("No control received from the client this frame!"));
   }

@@ -20,6 +20,7 @@ from carla.sensor import Camera, Lidar
 from carla.settings import CarlaSettings
 from carla.tcp import TCPConnectionError
 from carla.util import print_over_same_line
+from carla.carla_server_pb2 import Vector3D, AgentControl, Control
 
 
 def run_carla_client(args):
@@ -134,13 +135,22 @@ def run_carla_client(args):
                 # simulation until we send this control.
 
                 if not args.autopilot:
+                    wp = Vector3D()
+                    wp.x = 0
+                    wp.y = 1
+                    wp.z = 1
 
-                    client.send_control(
-                        steer=random.uniform(-1.0, 1.0),
-                        throttle=0.5,
-                        brake=0.0,
-                        hand_brake=False,
-                        reverse=False)
+                    control = Control()
+                    control.steer = random.uniform(-1.0, 1.0)
+                    control.throttle = 0.5
+                    control.brake = 0.0
+                    control.hand_brake = False
+                    control.reverse = False
+                    control.agent_control.id = measurements.non_player_agents[0].id
+                    control.agent_control.waypoints.extend([wp])
+                    control.agent_control.waypoint_times.extend([10])
+
+                    client.send_control(control)
 
                 else:
 
@@ -206,7 +216,7 @@ def main():
         '-q', '--quality-level',
         choices=['Low', 'Epic'],
         type=lambda s: s.title(),
-        default='Epic',
+        default='Low',
         help='graphics quality level, a lower level makes the simulation run considerably faster.')
     argparser.add_argument(
         '-i', '--images-to-disk',

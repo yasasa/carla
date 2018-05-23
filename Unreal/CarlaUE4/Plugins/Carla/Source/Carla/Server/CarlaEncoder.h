@@ -10,6 +10,7 @@
 
 #include "Sensor/SensorDataView.h"
 #include "Vehicle/VehicleControl.h"
+#include "Agent/AgentControl.h"
 
 #include <carla/carla_server.h>
 
@@ -51,13 +52,23 @@ public:
     IniFile = FString(Data.ini_file_length, ANSI_TO_TCHAR(Data.ini_file));
   }
 
-  static void Decode(const carla_control &Data, FVehicleControl &Control)
+  static void Decode(const carla_control &Data, FVehicleControl &VehicleControl, FAgentControl &AgentControl)
   {
-    Control.Steer = Data.steer;
-    Control.Throttle = Data.throttle;
-    Control.Brake = Data.brake;
-    Control.bHandBrake = Data.hand_brake;
-    Control.bReverse = Data.reverse;
+    VehicleControl.Steer = Data.steer;
+    VehicleControl.Throttle = Data.throttle;
+    VehicleControl.Brake = Data.brake;
+    VehicleControl.bHandBrake = Data.hand_brake;
+    VehicleControl.bReverse = Data.reverse;
+
+    AgentControl.id = Data.agent_control.id;
+    for(size_t i = 0; i < Data.agent_control.number_of_waypoints; i++){
+      const carla_vector3d *waypoint = Data.agent_control.waypoints;
+      AgentControl.Waypoints.Add(FVector(waypoint->x, waypoint->y, waypoint->z));
+      AgentControl.WaypointTimes.Add(*(Data.agent_control.waypoint_times+i));
+    }
+
+    delete[] Data.agent_control.waypoints;
+    delete[] Data.agent_control.waypoint_times;
   }
 
 private:

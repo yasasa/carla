@@ -1,9 +1,6 @@
 // Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma
 // de Barcelona (UAB).
-//
-// This work is licensed under the terms of the MIT license.
-// For a copy, see <https://opensource.org/licenses/MIT>.
-
+// // This work is licensed under the terms of the MIT license. // For a copy, see <https://opensource.org/licenses/MIT>.
 syntax = "proto3";
 
 package carla_server;
@@ -120,12 +117,19 @@ message EpisodeReady {
 // -- Agent Server Messages ----------------------------------------------------
 // =============================================================================
 
+message AgentControl{
+  fixed32 id = 3;
+  repeated Vector3D waypoints = 1;
+  repeated float waypoint_times = 2;
+}
+
 message Control {
   float steer = 1;
   float throttle = 2;
   float brake = 3;
   bool hand_brake = 4;
   bool reverse = 5;
+  AgentControl agent_control = 6;
 }
 
 message Measurements {

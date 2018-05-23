@@ -155,7 +155,7 @@ AWalkerAIController::AWalkerAIController(const FObjectInitializer& ObjectInitial
   SightConfiguration->DetectionByAffiliation.bDetectEnemies = true;
   SightConfiguration->DetectionByAffiliation.bDetectNeutrals = true;
   SightConfiguration->DetectionByAffiliation.bDetectFriendlies = true;
-  
+
   Perception->ConfigureSense(*SightConfiguration);
   Perception->SetDominantSense(SightConfiguration->GetSenseImplementation());
   Perception->OnPerceptionUpdated.AddDynamic(this, &AWalkerAIController::SenseActors);
@@ -175,23 +175,22 @@ void AWalkerAIController::Tick(float DeltaSeconds)
 {
   Super::Tick(DeltaSeconds);
   TimeInState+=DeltaSeconds;
-  if (Status != EWalkerStatus::RunOver) 
+  if (Status != EWalkerStatus::RunOver)
   {
-    switch (GetMoveStatus()) 
+  switch (GetMoveStatus())
 	{
 	  default: break;
-      case EPathFollowingStatus::Idle: 
+    case EPathFollowingStatus::Idle:
       //case EPathFollowingStatus::Waiting: //<-- incomplete path
-        LOG_AI_WALKER(Warning, "is stuck!");
-        ChangeStatus(EWalkerStatus::Stuck);
-        break;
-      case EPathFollowingStatus::Paused:
-		if(TimeInState>WALKER_MAX_TIME_PAUSED){
-			LOG_AI_WALKER(Log, "is paused, trying resume movement");
-			TryResumeMovement();
-		}
-        break;
-	
+      LOG_AI_WALKER(Warning, "is stuck!");
+      ChangeStatus(EWalkerStatus::Stuck);
+      break;
+    case EPathFollowingStatus::Paused:
+      if(TimeInState>WALKER_MAX_TIME_PAUSED){
+        LOG_AI_WALKER(Log, "is paused, trying resume movement");
+        TryResumeMovement();
+      }
+      break;
 	};
   }
 }
@@ -208,7 +207,7 @@ FPathFollowingRequestResult AWalkerAIController::MoveTo(
 
 ;
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
-  
+
   ChangeStatus(EWalkerStatus::Moving);
   return Super::MoveTo(MoveRequest, OutPath);
 }
@@ -221,8 +220,7 @@ void AWalkerAIController::OnMoveCompleted(
 #ifdef CARLA_AI_WALKERS_EXTRA_LOG
   UE_LOG(LogCarla, Log, TEXT("Walker %s completed move at (%s)"),
       *GetPawn()->GetName(),
-      *GetPawn()->GetActorLocation().ToString())
-;
+      *GetPawn()->GetActorLocation().ToString());
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
   ChangeStatus(EWalkerStatus::MoveCompleted);
 }

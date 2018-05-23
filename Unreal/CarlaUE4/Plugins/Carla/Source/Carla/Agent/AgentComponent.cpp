@@ -43,7 +43,7 @@ void UAgentComponent::BeginPlay()
   if (bRegisterAgentComponent)
   {
     /**
-      * This only returns true if the current game mode is not null 
+      * This only returns true if the current game mode is not null
       * because you can only access a game mode if you are the host
       * @param oftheworld UWorld is needed to access the game mode
       * @return true if there is a game mode and it is not null
@@ -78,5 +78,9 @@ void UAgentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
   }
 
   Super::EndPlay(EndPlayReason);
+}
+
+void UAgentComponent::ApplyAIControl(const FAgentControl &Control) const{
+  UE_LOG(LogCarlaServer, Warning, TEXT("HereHere"));
 }
 

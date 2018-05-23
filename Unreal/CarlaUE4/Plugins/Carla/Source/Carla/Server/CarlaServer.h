@@ -46,7 +46,7 @@ public:
 
   ErrorCode SendEpisodeReady(bool bBlocking);
 
-  ErrorCode ReadControl(FVehicleControl &Control, bool bBlocking);
+  ErrorCode ReadControl(FVehicleControl &Control, FAgentControl &AgentControl, bool bBlocking);
 
   /// Enqueues sensor data to be sent to the client. It is safe to call this
   /// function from a different thread.

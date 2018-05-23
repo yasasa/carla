@@ -210,7 +210,6 @@ namespace server {
       return false;
     }
   }
-
   bool CarlaEncoder::Decode(const std::string &str, carla_control &values) {
     static thread_local auto *message = _protobuf.CreateMessage<cs::Control>();
     DEBUG_ASSERT(message != nullptr);
@@ -221,6 +220,24 @@ namespace server {
       values.brake = message->brake();
       values.hand_brake = message->hand_brake();
       values.reverse = message->reverse();
+      auto agent_control = message->agent_control();
+      values.agent_control.id = agent_control.id();
+
+      // Can't use smart pointers because of C frontend, have to manually delete
+      values.agent_control.waypoint_times = new float[agent_control.waypoint_times_size()];
+      for(int i = 0; i < agent_control.waypoint_times_size(); ++i){
+        *(values.agent_control.waypoint_times+i) = agent_control.waypoint_times(i);
+      }
+      values.agent_control.number_of_waypoint_times = agent_control.waypoint_times_size();
+
+      values.agent_control.waypoints = new carla_vector3d[agent_control.waypoints_size()];
+      for(int i = 0; i < agent_control.waypoints_size(); ++i){
+        auto waypoint = agent_control.waypoints(i);
+        (values.agent_control.waypoints+i)->x = waypoint.x();
+        (values.agent_control.waypoints+i)->y = waypoint.y();
+        (values.agent_control.waypoints+i)->z = waypoint.z();
+      }
+      values.agent_control.number_of_waypoints = agent_control.waypoints_size();
       return true;
     } else {
       log_error("invalid protobuf message: control");

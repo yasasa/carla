@@ -10,6 +10,7 @@
 
 #include "Components/SceneComponent.h"
 #include "Templates/SharedPointer.h"
+#include "Agent/AgentControl.h"
 
 #include "AgentComponent.generated.h"
 
@@ -31,6 +32,8 @@ public:
 
   virtual void AcceptVisitor(IAgentComponentVisitor &Visitor) const;
 
+
+  virtual void ApplyAIControl(const FAgentControl &Control) const;
 protected:
 
   virtual void BeginPlay() override;
