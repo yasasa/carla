@@ -140,15 +140,19 @@ def run_carla_client(args):
                     wp.y = 1
                     wp.z = 1
 
+                    walkers = list(filter(lambda x: x.HasField('pedestrian'), measurements.non_player_agents))
+                    agent_control = AgentControl()
+                    agent_control.id = walkers[0].id
+                    agent_control.waypoints.extend([wp])
+                    agent_control.waypoint_times.extend([10])
+
                     control = Control()
                     control.steer = random.uniform(-1.0, 1.0)
                     control.throttle = 0.5
                     control.brake = 0.0
                     control.hand_brake = False
                     control.reverse = False
-                    control.agent_control.id = measurements.non_player_agents[0].id
-                    control.agent_control.waypoints.extend([wp])
-                    control.agent_control.waypoint_times.extend([10])
+                    control.agent_controls.extend([agent_control])
 
                     client.send_control(control)
 

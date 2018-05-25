@@ -36,13 +36,13 @@ public:
 
   void RegisterSensor(ASensor &InSensor);
 
-  void RegisterAgent(const UAgentComponent *Agent)
+  void RegisterAgent(UAgentComponent *Agent)
   {
     check(Agent != nullptr);
     Agents.Emplace(Agent);
   }
 
-  void DeregisterAgent(const UAgentComponent *Agent)
+  void DeregisterAgent(UAgentComponent *Agent)
   {
     check(Agent != nullptr);
     Agents.RemoveSwap(Agent);
@@ -54,7 +54,7 @@ public:
     return Player->GetPlayerState();
   }
 
-  const TArray<const UAgentComponent *> &GetAgents() const
+  const TArray<UAgentComponent *> &GetAgents() const
   {
     return Agents;
   }
@@ -65,11 +65,15 @@ public:
     Player->GetPossessedVehicle()->ApplyVehicleControl(VehicleControl);
   }
 
-  void ApplyAgentControl(const FAgentControl &Control)
+  void ApplyAgentControl(const FAgentControl &Controls)
   {
+    if(Controls.SingleAgentControls.Num() <= 0){
+      return;
+    }
+
     for(int i = 0; i < Agents.Num(); i++){
-      if (Agents[i]->GetId() == Control.id){
-        Agents[i]->ApplyAIControl(Control);
+      if (Agents[i]->GetId() == Controls.SingleAgentControls[0].id){
+        Agents[i]->ApplyAIControl(Controls.SingleAgentControls[0]);
         break;
       }
     }
@@ -79,7 +83,7 @@ public:
 
 private:
 
-  TArray<const UAgentComponent *> Agents;
+  TArray<UAgentComponent *> Agents;
 
   ACarlaVehicleController *Player = nullptr;
 

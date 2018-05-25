@@ -128,7 +128,7 @@ void FCarlaEncoder::Encode(
 }
 
 void FCarlaEncoder::Encode(
-    const TArray<const UAgentComponent *> &Agents,
+    const TArray<UAgentComponent *> &Agents,
     TArray<carla_agent> &Data)
 {
   const int32 NumberOfAgents = Agents.Num();

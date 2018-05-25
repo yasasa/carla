@@ -129,7 +129,7 @@ message Control {
   float brake = 3;
   bool hand_brake = 4;
   bool reverse = 5;
-  AgentControl agent_control = 6;
+  repeated AgentControl agent_controls = 6;
 }
 
 message Measurements {

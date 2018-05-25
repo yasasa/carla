@@ -33,7 +33,7 @@ public:
   virtual void AcceptVisitor(IAgentComponentVisitor &Visitor) const;
 
 
-  virtual void ApplyAIControl(const FAgentControl &Control) const;
+  virtual void ApplyAIControl(const FSingleAgentControl &Control);
 protected:
 
   virtual void BeginPlay() override;

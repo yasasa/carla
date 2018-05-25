@@ -54,7 +54,7 @@ public:
 
   ErrorCode SendMeasurements(
       const ACarlaPlayerState &PlayerState,
-      const TArray<const UAgentComponent *> &Agents,
+      const TArray<UAgentComponent *> &Agents,
       bool bSendNonPlayerAgentsInfo);
 
 private:

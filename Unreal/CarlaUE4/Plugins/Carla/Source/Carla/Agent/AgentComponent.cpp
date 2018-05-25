@@ -80,7 +80,7 @@ void UAgentComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
   Super::EndPlay(EndPlayReason);
 }
 
-void UAgentComponent::ApplyAIControl(const FAgentControl &Control) const{
-  UE_LOG(LogCarlaServer, Warning, TEXT("HereHere"));
+void UAgentComponent::ApplyAIControl(const FSingleAgentControl &Control) {
+  UE_LOG(LogCarlaServer, Warning, TEXT("Control not supported for this agent type"));
 }
 

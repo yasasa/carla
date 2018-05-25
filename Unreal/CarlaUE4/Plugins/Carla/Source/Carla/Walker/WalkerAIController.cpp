@@ -296,5 +296,10 @@ void AWalkerAIController::OnPawnTookDamage(
   ChangeStatus(EWalkerStatus::RunOver);
 }
 
+void AWalkerAIController::SetControl(const FSingleAgentControl &Control)
+{
+  LOG_AI_WALKER(Log, "Setting manual control");
+
+}
 #undef EXTRA_LOG_ONLY
 #undef LOG_AI_WALKER

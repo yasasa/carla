@@ -151,23 +151,22 @@ extern "C" {
   /* -- carla_control ------------------------------------------------------- */
   /* ======================================================================== */
 
+#define MAX_AGENT_CONTROL_WAYPOINTS 512
   struct carla_agent_control {
     uint32_t id;
-
-    struct carla_vector3d *waypoints;
     uint32_t number_of_waypoints;
-
-    float *waypoint_times;
-    uint32_t number_of_waypoint_times;
+    struct carla_vector3d waypoints[MAX_AGENT_CONTROL_WAYPOINTS];
+    float waypoint_times[MAX_AGENT_CONTROL_WAYPOINTS];
   };
-
+#define MAX_CONTROL_AGENTS 512
   struct carla_control {
     float steer;
     float throttle;
     float brake;
     bool hand_brake;
     bool reverse;
-    struct carla_agent_control agent_control;
+    uint32_t number_of_agent_controls;
+    struct carla_agent_control agent_controls[MAX_CONTROL_AGENTS];
   };
 
   /* ======================================================================== */

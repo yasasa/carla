@@ -148,7 +148,7 @@ FCarlaServer::ErrorCode FCarlaServer::SendSensorData(const FSensorDataView &Data
 
 FCarlaServer::ErrorCode FCarlaServer::SendMeasurements(
     const ACarlaPlayerState &PlayerState,
-    const TArray<const UAgentComponent *> &Agents,
+    const TArray<UAgentComponent *> &Agents,
     const bool bSendNonPlayerAgentsInfo)
 {
   // Encode measurements.

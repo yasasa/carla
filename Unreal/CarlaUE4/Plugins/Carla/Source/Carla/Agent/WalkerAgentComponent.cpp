@@ -8,6 +8,7 @@
 
 #include "Carla.h"
 #include "WalkerAgentComponent.h"
+#include "Walker/WalkerAIController.h"
 
 UWalkerAgentComponent::UWalkerAgentComponent(const FObjectInitializer &ObjectInitializer)
   : Super(ObjectInitializer) {}
@@ -18,4 +19,10 @@ void UWalkerAgentComponent::BeginPlay()
   checkf(Walker != nullptr, TEXT("UWalkerAgentComponent can only be attached to ACharacter"));
 
   Super::BeginPlay();
+}
+
+void UWalkerAgentComponent::ApplyAIControl(const FSingleAgentControl &Control)
+{
+  auto controller = Cast<AWalkerAIController>(Walker->GetController());
+  controller->SetControl(Control);
 }

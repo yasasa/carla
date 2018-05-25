@@ -9,16 +9,24 @@
 #include "AgentControl.generated.h"
 
 USTRUCT(BlueprintType)
-struct CARLA_API FAgentControl
+struct CARLA_API FSingleAgentControl
 {
   GENERATED_BODY()
 
-  UPROPERTY(Category = "Agent Control", EditAnywhere)
+  UPROPERTY(Category = "Single Agent Control", EditAnywhere)
   int id;
 
-  UPROPERTY(Category = "Agent Control", EditAnywhere)
+  UPROPERTY(Category = "Single Agent Control", EditAnywhere)
   TArray<FVector> Waypoints;
 
-  UPROPERTY(Category = "Agent Control", EditAnywhere)
+  UPROPERTY(Category = "Single Agent Control", EditAnywhere)
   TArray<float> WaypointTimes;
+};
+
+USTRUCT(BlueprintType)
+struct CARLA_API FAgentControl
+{
+  GENERATED_BODY()
+  UPROPERTY(Category = "Agent Control", EditAnywhere)
+  TArray<FSingleAgentControl> SingleAgentControls;
 };

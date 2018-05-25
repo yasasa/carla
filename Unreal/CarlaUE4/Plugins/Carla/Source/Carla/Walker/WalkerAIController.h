@@ -19,6 +19,7 @@ enum class EWalkerStatus : uint8 {
   Stuck                 UMETA(DisplayName = "Walker Is Stuck"),
   RunOver               UMETA(DisplayName = "Walker Has Been Run Over"),
   Invalid               UMETA(DisplayName = "Walker Is Invalid"),
+  Controlled            UMETA(DisplayName = "Walker Is Client Controlled"),
   Unknown               UMETA(DisplayName = "Unknown"),
 };
 
@@ -57,6 +58,8 @@ public:
   UFUNCTION(BlueprintCallable)
   float GetTimeInState() const { return TimeInState; }
 
+  void SetControl(const FSingleAgentControl &Control);
+
 private:
   void ChangeStatus(EWalkerStatus status);
   void TryResumeMovement();
@@ -73,4 +76,7 @@ private:
   EWalkerStatus Status = EWalkerStatus::Unknown;
   /** Continous time in the same EWalkerStatus */
   float TimeInState=0.0f;
+
+  bool bClientControlled=false;
+  TArray<FVector> ControlWaypoints;
 };

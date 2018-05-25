@@ -220,24 +220,34 @@ namespace server {
       values.brake = message->brake();
       values.hand_brake = message->hand_brake();
       values.reverse = message->reverse();
-      auto agent_control = message->agent_control();
-      values.agent_control.id = agent_control.id();
-
-      // Can't use smart pointers because of C frontend, have to manually delete
-      values.agent_control.waypoint_times = new float[agent_control.waypoint_times_size()];
-      for(int i = 0; i < agent_control.waypoint_times_size(); ++i){
-        *(values.agent_control.waypoint_times+i) = agent_control.waypoint_times(i);
+      size_t agent_controls_size = message->agent_controls_size();
+      if(agent_controls_size > MAX_CONTROL_AGENTS){
+        agent_controls_size = MAX_CONTROL_AGENTS;
+        log_error("Received more than maximum allowed controllable agents");
       }
-      values.agent_control.number_of_waypoint_times = agent_control.waypoint_times_size();
+      for(size_t j = 0; j < agent_controls_size; j++){
+        auto agent_controls = message->agent_controls(j);
+        values.agent_controls[j].id = agent_controls.id();
 
-      values.agent_control.waypoints = new carla_vector3d[agent_control.waypoints_size()];
-      for(int i = 0; i < agent_control.waypoints_size(); ++i){
-        auto waypoint = agent_control.waypoints(i);
-        (values.agent_control.waypoints+i)->x = waypoint.x();
-        (values.agent_control.waypoints+i)->y = waypoint.y();
-        (values.agent_control.waypoints+i)->z = waypoint.z();
+        size_t num_waypoints = message->agent_controls_size();
+        if(num_waypoints > MAX_AGENT_CONTROL_WAYPOINTS){
+          num_waypoints = MAX_AGENT_CONTROL_WAYPOINTS;
+          log_error("Received more than the maximum allowed waypoints for agent id %lu", agent_controls.id());
+        }
+
+        for(size_t i = 0; i < num_waypoints; ++i){
+          *(values.agent_controls[j].waypoint_times+i) = agent_controls.waypoint_times(i);
+        }
+
+        for(size_t i = 0; i < num_waypoints; ++i){
+          auto waypoint = agent_controls.waypoints(i);
+          (values.agent_controls[j].waypoints+i)->x = waypoint.x();
+          (values.agent_controls[j].waypoints+i)->y = waypoint.y();
+          (values.agent_controls[j].waypoints+i)->z = waypoint.z();
+        }
+        values.agent_controls[j].number_of_waypoints = num_waypoints;
       }
-      values.agent_control.number_of_waypoints = agent_control.waypoints_size();
+      values.number_of_agent_controls = agent_controls_size;
       return true;
     } else {
       log_error("invalid protobuf message: control");
