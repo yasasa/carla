@@ -8,37 +8,35 @@
 
 #include "Agent/AgentComponentVisitor.h"
 
+#include "Agent/AgentControl.h"
 #include "Sensor/SensorDataView.h"
 #include "Vehicle/VehicleControl.h"
-#include "Agent/AgentControl.h"
 
 #include <carla/carla_server.h>
 
 /// Encodes Unreal classes to CarlaServer API. To be used by FCarlaServer only.
-class FCarlaEncoder : private IAgentComponentVisitor
-{
-public:
-
-  static TUniquePtr<const char[]> Encode(const FString &String);
+class FCarlaEncoder : private IAgentComponentVisitor {
+  public:
+  static TUniquePtr<const char[]> Encode(const FString& String);
 
   static void Encode(
-    const TArray<APlayerStart *> &AvailableStartSpots,
-    TArray<carla_transform> &Data);
+      const TArray<APlayerStart*>& AvailableStartSpots,
+      TArray<carla_transform>& Data);
 
   static void Encode(
-    const TArray<USensorDescription *> &SensorDescriptions,
-    TArray<carla_sensor_definition> &Data,
-    TArray<TUniquePtr<const char[]>> &SensorNamesMemory);
+      const TArray<USensorDescription*>& SensorDescriptions,
+      TArray<carla_sensor_definition>& Data,
+      TArray<TUniquePtr<const char[]> >& SensorNamesMemory);
 
   static void Encode(
-      const ACarlaPlayerState &PlayerState,
-      carla_measurements &Data);
+      const ACarlaPlayerState& PlayerState,
+      carla_measurements& Data);
 
   static void Encode(
-      const TArray<UAgentComponent *> &Agents,
-      TArray<carla_agent> &Data);
+      const TArray<UAgentComponent*>& Agents,
+      TArray<carla_agent>& Data);
 
-  static void Encode(const FSensorDataView &SensorData, carla_sensor_data &Data)
+  static void Encode(const FSensorDataView& SensorData, carla_sensor_data& Data)
   {
     Data.id = SensorData.GetSensorId();
     Data.header = SensorData.GetHeader().GetData();
@@ -47,43 +45,23 @@ public:
     Data.data_size = SensorData.GetData().GetSize();
   }
 
-  static void Decode(const carla_request_new_episode &Data, FString &IniFile)
+  static void Decode(const carla_request_new_episode& Data, FString& IniFile)
   {
     IniFile = FString(Data.ini_file_length, ANSI_TO_TCHAR(Data.ini_file));
   }
 
-  static void Decode(const carla_control &Data, FVehicleControl &VehicleControl, FAgentControl &AgentControls)
-  {
-    VehicleControl.Steer = Data.steer;
-    VehicleControl.Throttle = Data.throttle;
-    VehicleControl.Brake = Data.brake;
-    VehicleControl.bHandBrake = Data.hand_brake;
-    VehicleControl.bReverse = Data.reverse;
+  static void Decode(const carla_control& Data, FVehicleControl& VehicleControl, FAgentControl& AgentControls);
 
-    FSingleAgentControl AgentControl;
+  private:
+  static void Encode(const UAgentComponent& AgentComponent, carla_agent& Data);
 
-    for(size_t j = 0; j < Data.number_of_agent_controls; j++){
-      AgentControl.id = Data.agent_controls[j].id;
-      for(size_t i = 0; i < Data.agent_controls[j].number_of_waypoints; i++){
-        const carla_vector3d waypoint = Data.agent_controls[j].waypoints[i];
-        AgentControl.Waypoints.Add(FVector(waypoint.x, waypoint.y, waypoint.z));
-        AgentControl.WaypointTimes.Add(Data.agent_controls[j].waypoint_times[i]);
-      }
-      AgentControls.SingleAgentControls.Add(AgentControl);
-    }
-  }
+  FCarlaEncoder(carla_agent& Data);
 
-private:
+  virtual void Visit(const UTrafficSignAgentComponent&) override;
 
-  static void Encode(const UAgentComponent &AgentComponent, carla_agent &Data);
+  virtual void Visit(const UVehicleAgentComponent&) override;
 
-  FCarlaEncoder(carla_agent &Data);
+  virtual void Visit(const UWalkerAgentComponent&) override;
 
-  virtual void Visit(const UTrafficSignAgentComponent &) override;
-
-  virtual void Visit(const UVehicleAgentComponent &) override;
-
-  virtual void Visit(const UWalkerAgentComponent &) override;
-
-  carla_agent &Data;
+  carla_agent& Data;
 };

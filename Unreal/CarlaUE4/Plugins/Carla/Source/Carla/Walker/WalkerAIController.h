@@ -7,7 +7,9 @@
 #pragma once
 
 #include "AIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "WalkerAIController.generated.h"
+
 
 class UAISenseConfig_Sight;
 
@@ -60,14 +62,20 @@ public:
 
   void SetControl(const FSingleAgentControl &Control);
 
+  bool IsClientControlled(){
+    return bClientControlled;
+  }
+
 private:
   void ChangeStatus(EWalkerStatus status);
   void TryResumeMovement();
-
+  void RetryMovement();
   void TryPauseMovement(bool bItWasRunOver = false);
 
   UFUNCTION()
   void OnPawnTookDamage(AActor *DamagedActor, float Damage, const UDamageType *DamageType, AController *InstigatedBy, AActor *DamageCauser);
+
+  void SetNavWaypoint();
 
   UPROPERTY(Category = "Walker AI Controller", VisibleAnywhere)
   UAISenseConfig_Sight *SightConfiguration;
@@ -78,5 +86,6 @@ private:
   float TimeInState=0.0f;
 
   bool bClientControlled=false;
-  TArray<FVector> ControlWaypoints;
+  size_t CurrentWaypoint;
+  TArray<TPair<float, FVector>> ControlWaypoints;
 };

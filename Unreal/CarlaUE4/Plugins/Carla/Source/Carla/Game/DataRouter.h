@@ -72,9 +72,8 @@ public:
     }
 
     for(int i = 0; i < Agents.Num(); i++){
-      if (Agents[i]->GetId() == Controls.SingleAgentControls[0].id){
-        Agents[i]->ApplyAIControl(Controls.SingleAgentControls[0]);
-        break;
+      if (const FSingleAgentControl* AgentControl = Controls.SingleAgentControls.Find(Agents[i]->GetId())){
+        Agents[i]->ApplyAIControl(*AgentControl);
       }
     }
   }

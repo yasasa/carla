@@ -19,6 +19,7 @@
 
 // Conversion from centimeters to meters.
 static constexpr float TO_METERS = 1e-2;
+static constexpr float TO_CM = 1e2;
 
 // =============================================================================
 // -- Static local methods -----------------------------------------------------
@@ -145,6 +146,30 @@ void FCarlaEncoder::Encode(const UAgentComponent &AgentComponent, carla_agent &A
   FCarlaEncoder Encoder(AgentData);
   AgentComponent.AcceptVisitor(Encoder);
 }
+
+void FCarlaEncoder::Decode(const carla_control& Data, FVehicleControl& VehicleControl, FAgentControl& AgentControls)
+{
+  VehicleControl.Steer = Data.steer;
+  VehicleControl.Throttle = Data.throttle;
+  VehicleControl.Brake = Data.brake;
+  VehicleControl.bHandBrake = Data.hand_brake;
+  VehicleControl.bReverse = Data.reverse;
+
+  for (size_t j = 0; j < Data.number_of_agent_controls; j++) {
+    FSingleAgentControl SingleAgentControl;
+    for (size_t i = 0; i < Data.agent_controls[j].number_of_waypoints; i++) {
+      const carla_vector3d _Point = Data.agent_controls[j].waypoints[i];
+
+      float Time = Data.agent_controls[j].waypoint_times[i];
+      FVector Point(_Point.x * TO_CM, _Point.y * TO_CM, _Point.z * TO_CM);
+
+      SingleAgentControl.Points.Add(Point);
+      SingleAgentControl.Times.Add(Time);
+    }
+    AgentControls.SingleAgentControls.Add(Data.agent_controls[j].id, SingleAgentControl);
+  }
+}
+
 
 // =============================================================================
 // -- FCarlaEncoder ------------------------------------------------------------

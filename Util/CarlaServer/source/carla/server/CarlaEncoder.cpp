@@ -229,7 +229,7 @@ namespace server {
         auto agent_controls = message->agent_controls(j);
         values.agent_controls[j].id = agent_controls.id();
 
-        size_t num_waypoints = message->agent_controls_size();
+        size_t num_waypoints = agent_controls.waypoints_size();
         if(num_waypoints > MAX_AGENT_CONTROL_WAYPOINTS){
           num_waypoints = MAX_AGENT_CONTROL_WAYPOINTS;
           log_error("Received more than the maximum allowed waypoints for agent id %lu", agent_controls.id());
@@ -240,10 +240,9 @@ namespace server {
         }
 
         for(size_t i = 0; i < num_waypoints; ++i){
-          auto waypoint = agent_controls.waypoints(i);
-          (values.agent_controls[j].waypoints+i)->x = waypoint.x();
-          (values.agent_controls[j].waypoints+i)->y = waypoint.y();
-          (values.agent_controls[j].waypoints+i)->z = waypoint.z();
+          (values.agent_controls[j].waypoints[i]).x = agent_controls.waypoints(i).x();
+          (values.agent_controls[j].waypoints[i]).y = agent_controls.waypoints(i).y();
+          (values.agent_controls[j].waypoints[i]).z = agent_controls.waypoints(i).z();
         }
         values.agent_controls[j].number_of_waypoints = num_waypoints;
       }

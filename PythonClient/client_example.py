@@ -26,7 +26,7 @@ from carla.carla_server_pb2 import Vector3D, AgentControl, Control
 def run_carla_client(args):
     # Here we will run 3 episodes with 300 frames each.
     number_of_episodes = 3
-    frames_per_episode = 300
+    frames_per_episode = 30000
 
     # We assume the CARLA server is already waiting for a client to connect at
     # host:port. To create a connection we can use the `make_carla_client`
@@ -114,7 +114,7 @@ def run_carla_client(args):
                 measurements, sensor_data = client.read_data()
 
                 # Print some of the measurements.
-                print_measurements(measurements)
+                #print_measurements(measurements)
 
                 # Save the images to disk if requested.
                 if args.save_images_to_disk:
@@ -136,23 +136,29 @@ def run_carla_client(args):
 
                 if not args.autopilot:
                     wp = Vector3D()
-                    wp.x = 0
-                    wp.y = 1
-                    wp.z = 1
+                    pt = measurements.player_measurements.transform.location
+                    wp.x = pt.x
+                    wp.y = pt.y
+                    wp.z = pt.z
 
                     walkers = list(filter(lambda x: x.HasField('pedestrian'), measurements.non_player_agents))
-                    agent_control = AgentControl()
-                    agent_control.id = walkers[0].id
-                    agent_control.waypoints.extend([wp])
-                    agent_control.waypoint_times.extend([10])
+                    agent_controls = []
+                    for walker in walkers:
+                        agent_control = AgentControl()
+                        agent_control.id = walker.id
+                        agent_control.waypoints.extend([wp])
+                        agent_control.waypoint_times.extend([10])
+                        agent_controls.append(agent_control);
 
                     control = Control()
                     control.steer = random.uniform(-1.0, 1.0)
-                    control.throttle = 0.5
+                    control.throttle = 0.0
                     control.brake = 0.0
                     control.hand_brake = False
                     control.reverse = False
-                    control.agent_controls.extend([agent_control])
+                    if frame == 100:
+                        print(wp)
+                        control.agent_controls.extend(agent_controls[:1])
 
                     client.send_control(control)
 

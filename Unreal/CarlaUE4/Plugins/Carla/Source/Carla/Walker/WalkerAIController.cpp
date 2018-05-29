@@ -12,72 +12,77 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "WheeledVehicle.h"
 #include "WheeledVehicleMovementComponent.h"
+#include "AI/Navigation/NavigationSystem.h"
 
 #ifdef CARLA_AI_WALKERS_EXTRA_LOG
-#  include <DrawDebugHelpers.h>
-#  define LOG_AI_WALKER(Verbosity, Text) UE_LOG(LogCarla, Verbosity, TEXT("Walker %s " Text), *GetPawn()->GetName());
-#  define EXTRA_LOG_ONLY(predicate) predicate
+#include <DrawDebugHelpers.h>
+#define LOG_AI_WALKER(Verbosity, Text) UE_LOG(LogCarla, Verbosity, TEXT("Walker %s " Text), *GetPawn()->GetName());
+#define EXTRA_LOG_ONLY(predicate) predicate
 #else
-#  define LOG_AI_WALKER(Verbosity, Text)
-#  define EXTRA_LOG_ONLY(predicate)
+#define LOG_AI_WALKER(Verbosity, Text)
+#define EXTRA_LOG_ONLY(predicate)
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
+
 
 static constexpr float UPDATE_TIME_IN_SECONDS = 0.6f;
 static constexpr float PREVISION_TIME_IN_SECONDS = 5.0f;
 static constexpr float WALKER_SIGHT_RADIUS = 500.0f;
 static constexpr float WALKER_SPEED_DAMPING = 4.0f;
-static constexpr float WALKER_PERIPHERAL_VISION_ANGLE_IN_DEGREES =	130.0f;
+static constexpr float WALKER_PERIPHERAL_VISION_ANGLE_IN_DEGREES = 130.0f;
 static constexpr float WALKER_MAX_TIME_PAUSED = 5.0f;
 static constexpr float VEHICLE_SAFETY_RADIUS = 600.0f;
-
 
 // =============================================================================
 // -- PawnPath -----------------------------------------------------------------
 // =============================================================================
 
 class PawnPath {
-private:
-
-  static FVector GetLocation(const AActor &Actor)
+  private:
+  static FVector GetLocation(const AActor& Actor)
   {
-    const FVector &Location = Actor.GetActorLocation();
-    return {Location.X, Location.Y, 0.0f};
+    const FVector& Location = Actor.GetActorLocation();
+    return { Location.X, Location.Y, 0.0f };
   }
 
-  static FVector GetForwardVector(const AActor &Actor)
+  static FVector GetForwardVector(const AActor& Actor)
   {
     return Actor.GetTransform().GetRotation().GetForwardVector();
   }
 
-  static float GetForwardSpeed(const AWheeledVehicle &Vehicle)
+  static float GetForwardSpeed(const AWheeledVehicle& Vehicle)
   {
-    const auto *MovementComponent = Vehicle.GetVehicleMovementComponent();
+    const auto* MovementComponent = Vehicle.GetVehicleMovementComponent();
     check(nullptr != MovementComponent);
     return MovementComponent->GetForwardSpeed();
   }
 
 #ifdef CARLA_AI_WALKERS_EXTRA_LOG
-  static FVector GetPointForDrawing(const FVector &Location)
+  static FVector GetPointForDrawing(const FVector& Location)
   {
-    return {Location.X, Location.Y, 50.0f};
+    return { Location.X, Location.Y, 50.0f };
   }
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
 
   /// Helper constructor for vehicles.
-  explicit PawnPath(const FVector &Location, const FVector &ForwardDirection, const float Speed) :
-    Start(Location - ForwardDirection * VEHICLE_SAFETY_RADIUS),
-    End(Location + ForwardDirection * (VEHICLE_SAFETY_RADIUS + Speed * PREVISION_TIME_IN_SECONDS)) {}
+  explicit PawnPath(const FVector& Location, const FVector& ForwardDirection, const float Speed)
+      : Start(Location - ForwardDirection * VEHICLE_SAFETY_RADIUS)
+      , End(Location + ForwardDirection * (VEHICLE_SAFETY_RADIUS + Speed * PREVISION_TIME_IN_SECONDS))
+  {
+  }
 
-private:
+  private:
+  explicit PawnPath(const APawn& Walker)
+      : Start(GetLocation(Walker))
+      , End(GetLocation(Walker) + GetForwardVector(Walker) * WALKER_SPEED_DAMPING * WALKER_SIGHT_RADIUS)
+  {
+  }
 
-  explicit PawnPath(const APawn &Walker) :
-    Start(GetLocation(Walker)),
-    End(GetLocation(Walker) + GetForwardVector(Walker) * WALKER_SPEED_DAMPING * WALKER_SIGHT_RADIUS) {}
+  explicit PawnPath(const AWheeledVehicle& Vehicle)
+      : PawnPath(GetLocation(Vehicle), GetForwardVector(Vehicle), GetForwardSpeed(Vehicle))
+  {
+  }
 
-  explicit PawnPath(const AWheeledVehicle &Vehicle) :
-    PawnPath(GetLocation(Vehicle), GetForwardVector(Vehicle), GetForwardSpeed(Vehicle)) {}
-
-  static bool Intersect(const PawnPath &Lhs, const PawnPath &Rhs, UWorld* EXTRA_LOG_ONLY(World))
+  static bool Intersect(const PawnPath& Lhs, const PawnPath& Rhs, UWorld* EXTRA_LOG_ONLY(World))
   {
     EXTRA_LOG_ONLY(Lhs.DrawDebugArrow(World));
     EXTRA_LOG_ONLY(Rhs.DrawDebugArrow(World));
@@ -96,25 +101,23 @@ private:
   }
 
 #ifdef CARLA_AI_WALKERS_EXTRA_LOG
-  void DrawDebugArrow(UWorld *World) const
+  void DrawDebugArrow(UWorld* World) const
   {
     DrawDebugDirectionalArrow(World, GetPointForDrawing(Start), GetPointForDrawing(End), 60.0f, FColor::Red, false, 1.0f);
   }
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
 
-public:
-
+  public:
   /// Check if the paths of @a Walker and @a Vehicle intersect.
   ///
   /// It checks if within the update time the vehicle will cross the straight
   /// line of @a Walker sight radius on its forward direction.
-  static bool Intersect(const APawn &Walker, const AWheeledVehicle &Vehicle)
+  static bool Intersect(const APawn& Walker, const AWheeledVehicle& Vehicle)
   {
     return Intersect(PawnPath(Walker), PawnPath(Vehicle), Walker.GetWorld());
   }
 
-private:
-
+  private:
   FVector Start;
 
   FVector End;
@@ -124,10 +127,10 @@ private:
 // -- Other static functions ---------------------------------------------------
 // =============================================================================
 
-static bool IntersectsWithVehicle(const APawn &Self, const TArray<AActor *> &Actors)
+static bool IntersectsWithVehicle(const APawn& Self, const TArray<AActor*>& Actors)
 {
-  for (auto *Actor : Actors) {
-    const auto *Vehicle = Cast<AWheeledVehicle>(Actor);
+  for (auto* Actor : Actors) {
+    const auto* Vehicle = Cast<AWheeledVehicle>(Actor);
     if ((Vehicle != nullptr) && PawnPath::Intersect(Self, *Vehicle)) {
       return true;
     }
@@ -140,7 +143,7 @@ static bool IntersectsWithVehicle(const APawn &Self, const TArray<AActor *> &Act
 // =============================================================================
 
 AWalkerAIController::AWalkerAIController(const FObjectInitializer& ObjectInitializer)
-  : Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>(TEXT("PathFollowingComponent")))
+    : Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>(TEXT("PathFollowingComponent")))
 {
   PrimaryActorTick.bCanEverTick = true;
   PrimaryActorTick.TickInterval = UPDATE_TIME_IN_SECONDS;
@@ -160,11 +163,10 @@ AWalkerAIController::AWalkerAIController(const FObjectInitializer& ObjectInitial
   Perception->SetDominantSense(SightConfiguration->GetSenseImplementation());
   Perception->OnPerceptionUpdated.AddDynamic(this, &AWalkerAIController::SenseActors);
   SetPerceptionComponent(*Perception);
-  TimeInState=0.0f;
+  TimeInState = 0.0f;
 }
 
-
-void AWalkerAIController::Possess(APawn *aPawn)
+void AWalkerAIController::Possess(APawn* aPawn)
 {
   Super::Possess(aPawn);
   check(aPawn != nullptr);
@@ -174,38 +176,39 @@ void AWalkerAIController::Possess(APawn *aPawn)
 void AWalkerAIController::Tick(float DeltaSeconds)
 {
   Super::Tick(DeltaSeconds);
-  TimeInState+=DeltaSeconds;
-  if (Status != EWalkerStatus::RunOver)
-  {
-  switch (GetMoveStatus())
-	{
-	  default: break;
+  TimeInState += DeltaSeconds;
+  if (Status != EWalkerStatus::RunOver) {
+    switch (GetMoveStatus()) {
+    default:
+      break;
     case EPathFollowingStatus::Idle:
       //case EPathFollowingStatus::Waiting: //<-- incomplete path
-      LOG_AI_WALKER(Warning, "is stuck!");
-      ChangeStatus(EWalkerStatus::Stuck);
+      if(IsClientControlled()){
+        LOG_AI_WALKER(Log, "Retrying movement");
+        RetryMovement();
+      }else {
+        ChangeStatus(EWalkerStatus::Stuck);
+      }
       break;
     case EPathFollowingStatus::Paused:
-      if(TimeInState>WALKER_MAX_TIME_PAUSED){
+      if (TimeInState > WALKER_MAX_TIME_PAUSED) {
         LOG_AI_WALKER(Log, "is paused, trying resume movement");
         TryResumeMovement();
       }
       break;
-	};
+    };
   }
 }
 
 FPathFollowingRequestResult AWalkerAIController::MoveTo(
-      const FAIMoveRequest& MoveRequest,
-      FNavPathSharedPtr* OutPath)
+    const FAIMoveRequest& MoveRequest,
+    FNavPathSharedPtr* OutPath)
 {
 #ifdef CARLA_AI_WALKERS_EXTRA_LOG
   UE_LOG(LogCarla, Log, TEXT("Walker %s requested move from (%s) to (%s)"),
       *GetPawn()->GetName(),
       *GetPawn()->GetActorLocation().ToString(),
-      *MoveRequest.GetGoalLocation().ToString())
-
-;
+      *MoveRequest.GetGoalLocation().ToString());
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
 
   ChangeStatus(EWalkerStatus::Moving);
@@ -214,39 +217,101 @@ FPathFollowingRequestResult AWalkerAIController::MoveTo(
 
 void AWalkerAIController::OnMoveCompleted(
     const FAIRequestID RequestID,
-    const FPathFollowingResult &Result)
+    const FPathFollowingResult& Result)
 {
   Super::OnMoveCompleted(RequestID, Result);
 #ifdef CARLA_AI_WALKERS_EXTRA_LOG
-  UE_LOG(LogCarla, Log, TEXT("Walker %s completed move at (%s)"),
+  UE_LOG(LogCarla, Log, TEXT("Walker %s completed move at (%s), with status %s"),
       *GetPawn()->GetName(),
-      *GetPawn()->GetActorLocation().ToString());
+      *GetPawn()->GetActorLocation().ToString(),
+      *Result.ToString());
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
-  ChangeStatus(EWalkerStatus::MoveCompleted);
+  if (IsClientControlled() && CurrentWaypoint < ControlWaypoints.Num()-1) {
+     CurrentWaypoint++;
+     SetNavWaypoint();
+  } else {
+    ChangeStatus(EWalkerStatus::MoveCompleted);
+  }
 }
 
-void AWalkerAIController::SenseActors(TArray<AActor *> Actors)
+void AWalkerAIController::RetryMovement(){
+  SetNavWaypoint();
+}
+
+void AWalkerAIController::SetNavWaypoint()
 {
-  const auto *aPawn = GetPawn();
-  if ((Status == EWalkerStatus::Moving) &&
-      (aPawn != nullptr) &&
-      IntersectsWithVehicle(*aPawn, Actors)) {
-		TryPauseMovement();
+  auto Target = ControlWaypoints[CurrentWaypoint];
+  auto TimeToNavigate = Target.Key;
+  auto Waypoint = Target.Value;
+
+    // Set the navigation command.
+  FNavPathSharedPtr OutPath = MakeShareable(new FNavigationPath());
+  FPathFindingQuery Query;
+  FAIMoveRequest MoveReq(Waypoint);
+  MoveReq.SetUsePathfinding(true);
+  MoveReq.SetAcceptanceRadius(10.0f);
+  MoveReq.SetNavigationFilter(DefaultNavigationFilterClass);
+  MoveReq.SetReachTestIncludesAgentRadius(false);
+  MoveReq.SetCanStrafe(true);
+  MoveReq.SetProjectGoalLocation(true);
+  MoveReq.SetAllowPartialPath(true);
+
+  BuildPathfindingQuery(MoveReq, Query);
+
+#ifdef CARLA_AI_WALKERS_EXTRA_LOG
+  if(Query.NavData.IsValid()){
+      FPathFindingResult Res = Query.NavData->FindPath(Query.NavAgentProperties, Query);
+      switch(Res.Result){
+      case ENavigationQueryResult::Invalid:
+        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Invalid"));
+        break;
+      case ENavigationQueryResult::Error:
+        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Error"));
+        break;
+      case ENavigationQueryResult::Fail:
+        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Fail"));
+        break;
+      case ENavigationQueryResult::Success:
+        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Success"));
+        break;
+      }
+  }
+#endif
+
+  FindPathForMoveRequest(MoveReq, Query, OutPath);
+  const bool success = MoveToLocation(Waypoint, 10.0f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
+
+
+  // Get distance, and set appropriate speed
+  const float distance
+      = OutPath->GetLength();
+  const float speed = distance / TimeToNavigate;
+  static_cast<UCharacterMovementComponent *>(GetPawn()->GetMovementComponent())->MaxWalkSpeed = speed;
+}
+
+void AWalkerAIController::SenseActors(TArray<AActor*> Actors)
+{
+  const auto* aPawn = GetPawn();
+  if ((Status == EWalkerStatus::Moving) && (aPawn != nullptr) && IntersectsWithVehicle(*aPawn, Actors)) {
+    TryPauseMovement();
   }
 }
 
 void AWalkerAIController::TrySetMovement(bool paused)
 {
-	if(paused) TryPauseMovement(false);
-	else TryResumeMovement();
+  if (paused)
+    TryPauseMovement(false);
+  else
+    TryResumeMovement();
 }
 
 void AWalkerAIController::ChangeStatus(EWalkerStatus status)
 {
-	if(status==Status) return;
-	//switch (status) {  }
-	TimeInState = 0.0f;
-	Status = status;
+  if (status == Status)
+    return;
+  //switch (status) {  }
+  TimeInState = 0.0f;
+  Status = status;
 }
 
 void AWalkerAIController::TryResumeMovement()
@@ -284,11 +349,11 @@ void AWalkerAIController::TryPauseMovement(const bool bItWasRunOver)
 }
 
 void AWalkerAIController::OnPawnTookDamage(
-    AActor *DamagedActor,
+    AActor* DamagedActor,
     float Damage,
-    const UDamageType *DamageType,
-    AController *InstigatedBy,
-    AActor *DamageCauser)
+    const UDamageType* DamageType,
+    AController* InstigatedBy,
+    AActor* DamageCauser)
 {
   LOG_AI_WALKER(Warning, "has been run over");
   constexpr bool bItWasRunOver = true;
@@ -296,10 +361,17 @@ void AWalkerAIController::OnPawnTookDamage(
   ChangeStatus(EWalkerStatus::RunOver);
 }
 
-void AWalkerAIController::SetControl(const FSingleAgentControl &Control)
+void AWalkerAIController::SetControl(const FSingleAgentControl& Control)
 {
-  LOG_AI_WALKER(Log, "Setting manual control");
-
+  for(int i = 0; i < Control.Points.Num(); i++){
+    auto Point = Control.Points[i];
+    auto Time = Control.Times[i];
+    TPair<float, FVector> Waypoint(Time, Point);
+    ControlWaypoints.Add(Waypoint);
+  }
+  bClientControlled = true;
+  SetNavWaypoint();
 }
 #undef EXTRA_LOG_ONLY
 #undef LOG_AI_WALKER
+#undef CARLA_AI_WALKERS_EXTRA_LOG
