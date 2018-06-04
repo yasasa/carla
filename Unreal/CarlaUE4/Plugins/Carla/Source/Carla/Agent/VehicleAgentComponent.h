@@ -44,6 +44,8 @@ public:
 
 protected:
 
+  virtual void ApplyAIControl(const FSingleAgentControl& Control);
+
   virtual void BeginPlay() override;
 
   virtual void AcceptVisitor(IAgentComponentVisitor &Visitor) const final

@@ -28,3 +28,9 @@ void UVehicleAgentComponent::BeginPlay()
 
   Super::BeginPlay();
 }
+
+void UVehicleAgentComponent::ApplyAIControl(const FSingleAgentControl &Control){
+  checkf(!IsPlayer(*Vehicle), TEXT("Cannot control the player vehicle using Agent AI"));
+  auto VehicleController = Cast<AWheeledVehicleAIController>(Vehicle->GetController());
+  VehicleController->ApplyAIControl(Control);
+}

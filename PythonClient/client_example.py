@@ -141,7 +141,7 @@ def run_carla_client(args):
                     wp.y = pt.y
                     wp.z = pt.z
 
-                    walkers = list(filter(lambda x: x.HasField('pedestrian'), measurements.non_player_agents))
+                    walkers = list(filter(lambda x: x.HasField('pedestrian') or x.HasField('vehicle'), measurements.non_player_agents))
                     agent_controls = []
                     for walker in walkers:
                         agent_control = AgentControl()
@@ -158,7 +158,7 @@ def run_carla_client(args):
                     control.reverse = False
                     if frame == 100:
                         print(wp)
-                        control.agent_controls.extend(agent_controls[:1])
+                        control.agent_controls.extend(agent_controls[:])
 
                     client.send_control(control)
 

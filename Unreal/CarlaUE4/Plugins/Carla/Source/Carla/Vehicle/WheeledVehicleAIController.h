@@ -42,6 +42,8 @@ public:
   /// @{
 public:
 
+  virtual void ApplyAIControl(const FSingleAgentControl& Control);
+
   virtual void Possess(APawn *aPawn) override;
 
   virtual void Tick(float DeltaTime) override;
@@ -232,6 +234,9 @@ private:
 
   UPROPERTY(VisibleAnywhere)
   float MaximumSteerAngle = -1.0f;
+
+  bool bTrackTrajectory = false;
+  std::queue<float> TargetTimes;
 
   FVehicleControl AutopilotControl;
 
