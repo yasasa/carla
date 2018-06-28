@@ -157,15 +157,8 @@ void FCarlaEncoder::Decode(const carla_control& Data, FVehicleControl& VehicleCo
 
   for (size_t j = 0; j < Data.number_of_agent_controls; j++) {
     FSingleAgentControl SingleAgentControl;
-    for (size_t i = 0; i < Data.agent_controls[j].number_of_waypoints; i++) {
-      const carla_vector3d _Point = Data.agent_controls[j].waypoints[i];
-
-      float Time = Data.agent_controls[j].waypoint_times[i];
-      FVector Point(_Point.x * TO_CM, _Point.y * TO_CM, _Point.z * TO_CM);
-
-      SingleAgentControl.Points.Add(Point);
-      SingleAgentControl.Times.Add(Time);
-    }
+    Decode(Data.agent_controls[j].walker_control, SingleAgentControl.WalkerControl);
+    Decode(Data.agent_controls[j].vehicle_control, SingleAgentControl.VehicleControl);
     AgentControls.SingleAgentControls.Add(Data.agent_controls[j].id, SingleAgentControl);
   }
 }
@@ -176,6 +169,30 @@ void FCarlaEncoder::Decode(const carla_control& Data, FVehicleControl& VehicleCo
 // =============================================================================
 
 FCarlaEncoder::FCarlaEncoder(carla_agent &InData) : Data(InData) {}
+
+void FCarlaEncoder::Decode(const carla_walker_control& Data,
+                           FWalkerControl& WalkerControl)
+{
+  for (size_t i = 0; i < Data.number_of_waypoints; i++) {
+    const carla_vector3d _Point = Data.waypoints[i];
+
+    float Time = Data.waypoint_times[i];
+    FVector Point(_Point.x * TO_CM, _Point.y * TO_CM, _Point.z * TO_CM);
+
+    WalkerControl.Points.Add(Point);
+    WalkerControl.Times.Add(Time);
+  }
+}
+
+void FCarlaEncoder::Decode(const carla_vehicle_control& Data,
+                           FVehicleControl& VehicleControl)
+{
+  VehicleControl.Steer = Data.steer;
+  VehicleControl.Throttle = Data.throttle;
+  VehicleControl.Brake = Data.brake;
+  VehicleControl.bHandBrake = Data.hand_brake;
+  VehicleControl.bReverse = Data.reverse;
+}
 
 void FCarlaEncoder::Visit(const UTrafficSignAgentComponent &Agent)
 {

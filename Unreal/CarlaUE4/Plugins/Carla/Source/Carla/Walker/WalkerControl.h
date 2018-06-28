@@ -14,8 +14,8 @@ struct CARLA_API FWalkerControl
   GENERATED_BODY()
 
   UPROPERTY(Category = "Walker Control", EditAnywhere)
-  TArray<FVector> waypoints;
+  TArray<FVector> Points;
 
   UPROPERTY(Category = "Walker Control", EditAnywhere)
-  TArray<float> waypoint_times;
+  TArray<float> Times;
 };

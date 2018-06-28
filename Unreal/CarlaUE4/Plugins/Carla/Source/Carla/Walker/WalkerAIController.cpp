@@ -249,7 +249,7 @@ void AWalkerAIController::SetNavWaypoint()
   FPathFindingQuery Query;
   FAIMoveRequest MoveReq(Waypoint);
   MoveReq.SetUsePathfinding(true);
-  MoveReq.SetAcceptanceRadius(10.0f);
+  MoveReq.SetAcceptanceRadius(1.0f);
   MoveReq.SetNavigationFilter(DefaultNavigationFilterClass);
   MoveReq.SetReachTestIncludesAgentRadius(false);
   MoveReq.SetCanStrafe(true);
@@ -279,7 +279,8 @@ void AWalkerAIController::SetNavWaypoint()
 #endif
 
   FindPathForMoveRequest(MoveReq, Query, OutPath);
-  const bool success = MoveToLocation(Waypoint, 10.0f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
+  const bool success = MoveToLocation(Waypoint, 1.0f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
+  UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Success %s"), success? "True": "False");
 
 
   // Get distance, and set appropriate speed
@@ -363,9 +364,10 @@ void AWalkerAIController::OnPawnTookDamage(
 
 void AWalkerAIController::SetControl(const FSingleAgentControl& Control)
 {
-  for(int i = 0; i < Control.Points.Num(); i++){
-    auto Point = Control.Points[i];
-    auto Time = Control.Times[i];
+  const FWalkerControl &WalkerControl = Control.WalkerControl;
+  for(int i = 0; i < WalkerControl.Points.Num(); i++){
+    auto Point = WalkerControl.Points[i];
+    auto Time = WalkerControl.Times[i];
     TPair<float, FVector> Waypoint(Time, Point);
     ControlWaypoints.Add(Waypoint);
   }

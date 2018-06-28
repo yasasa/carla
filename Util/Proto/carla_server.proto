@@ -117,10 +117,23 @@ message EpisodeReady {
 // -- Agent Server Messages ----------------------------------------------------
 // =============================================================================
 
-message AgentControl{
-  fixed32 id = 3;
+message WalkerControl{
   repeated Vector3D waypoints = 1;
   repeated float waypoint_times = 2;
+}
+
+message VehicleControl{
+  float steer = 1;
+  float throttle = 2;
+  float brake = 3;
+  bool hand_brake = 4;
+  bool reverse = 5;
+}
+
+message AgentControl{
+  fixed32 id = 1;
+  WalkerControl walker_control = 2;
+  VehicleControl vehicle_control = 3;
 }
 
 message Control {

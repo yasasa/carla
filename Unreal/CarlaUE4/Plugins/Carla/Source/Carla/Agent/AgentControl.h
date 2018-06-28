@@ -6,17 +6,21 @@
 
 #pragma once
 
+#include "Vehicle/VehicleControl.h"
+#include "Walker/WalkerControl.h"
 #include "AgentControl.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct CARLA_API FSingleAgentControl {
   GENERATED_BODY()
 
   UPROPERTY(Category = "Single Agent Control", EditAnywhere)
-  TArray<FVector> Points;
+  FVehicleControl VehicleControl;
 
   UPROPERTY(Category = "Single Agent Control", EditAnywhere)
-  TArray<float> Times;
+  FWalkerControl WalkerControl;
+
 };
 
 USTRUCT(BlueprintType)

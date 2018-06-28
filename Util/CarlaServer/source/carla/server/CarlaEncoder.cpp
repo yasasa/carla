@@ -220,31 +220,48 @@ namespace server {
       values.brake = message->brake();
       values.hand_brake = message->hand_brake();
       values.reverse = message->reverse();
+
       size_t agent_controls_size = message->agent_controls_size();
       if(agent_controls_size > MAX_CONTROL_AGENTS){
         agent_controls_size = MAX_CONTROL_AGENTS;
         log_error("Received more than maximum allowed controllable agents");
       }
+
       for(size_t j = 0; j < agent_controls_size; j++){
         auto agent_controls = message->agent_controls(j);
         values.agent_controls[j].id = agent_controls.id();
 
-        size_t num_waypoints = agent_controls.waypoints_size();
-        if(num_waypoints > MAX_AGENT_CONTROL_WAYPOINTS){
-          num_waypoints = MAX_AGENT_CONTROL_WAYPOINTS;
-          log_error("Received more than the maximum allowed waypoints for agent id %lu", agent_controls.id());
-        }
+        if(agent_controls.has_walker_control()){
 
-        for(size_t i = 0; i < num_waypoints; ++i){
-          *(values.agent_controls[j].waypoint_times+i) = agent_controls.waypoint_times(i);
-        }
+          struct carla_walker_control& walker_controls =
+                            values.agent_controls[j].walker_control;
+          size_t num_waypoints = agent_controls.walker_control().waypoints_size();
 
-        for(size_t i = 0; i < num_waypoints; ++i){
-          (values.agent_controls[j].waypoints[i]).x = agent_controls.waypoints(i).x();
-          (values.agent_controls[j].waypoints[i]).y = agent_controls.waypoints(i).y();
-          (values.agent_controls[j].waypoints[i]).z = agent_controls.waypoints(i).z();
+          if(num_waypoints > MAX_AGENT_CONTROL_WAYPOINTS){
+            num_waypoints = MAX_AGENT_CONTROL_WAYPOINTS;
+            log_error("Received more than the maximum allowed waypoints"
+                      "for agent id %lu", agent_controls.id());
+          }
+
+          for(size_t i = 0; i < num_waypoints; ++i){
+            *(walker_controls.waypoint_times+i) = agent_controls.walker_control().waypoint_times(i);
+          }
+          for(size_t i = 0; i < num_waypoints; ++i){
+            walker_controls.waypoints[i].x = agent_controls.walker_control().waypoints(i).x();
+            walker_controls.waypoints[i].y = agent_controls.walker_control().waypoints(i).y();
+            walker_controls.waypoints[i].z = agent_controls.walker_control().waypoints(i).z();
+          }
+          walker_controls.number_of_waypoints = num_waypoints;
+
+        }else if (agent_controls.has_vehicle_control()){
+          struct carla_vehicle_control& vehicle_controls =
+                                  values.agent_controls[j].vehicle_control;
+          vehicle_controls.steer = agent_controls.vehicle_control().steer();
+          vehicle_controls.throttle = agent_controls.vehicle_control().throttle();
+          vehicle_controls.brake = agent_controls.vehicle_control().brake();
+          vehicle_controls.hand_brake = agent_controls.vehicle_control().hand_brake();
+          vehicle_controls.reverse = agent_controls.vehicle_control().reverse();
         }
-        values.agent_controls[j].number_of_waypoints = num_waypoints;
       }
       values.number_of_agent_controls = agent_controls_size;
       return true;

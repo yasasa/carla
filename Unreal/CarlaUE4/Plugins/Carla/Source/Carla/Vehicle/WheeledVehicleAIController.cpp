@@ -361,12 +361,6 @@ float AWheeledVehicleAIController::Move(const float Speed) {
 
 void AWheeledVehicleAIController::ApplyAIControl(const FSingleAgentControl& Control){
   UE_LOG(LogCarla, Warning, TEXT("Applying AI Control to Vehicle"));
-  while(!TargetLocations.empty()) (void)TargetLocations.pop();
-  while(!TargetTimes.empty()) (void)TargetTimes.pop();
-
-  for(int i = 0; i < Control.Points.Num(); i++){
-    TargetLocations.push(Control.Points[i]);
-    TargetTimes.push(Control.Times[i]);
-  }
-  bTrackTrajectory = true;
+  bAutopilotEnabled = false;
+  Vehicle->ApplyVehicleControl(Control.VehicleControl);
 }
