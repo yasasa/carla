@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-
-# Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma de
-# Barcelona (UAB).
-#
-# This work is licensed under the terms of the MIT license.
-# For a copy, see <https://opensource.org/licenses/MIT>.
-"""Connects with a CARLA simulator and displays the available start positions
-for the current map."""
-
 from __future__ import print_function
 
 import argparse
@@ -23,6 +14,8 @@ from carla.client import make_carla_client
 from carla.planner.map import CarlaMap
 from carla.settings import CarlaSettings
 from carla.tcp import TCPConnectionError
+
+""" This script is useful for visualizing NPC agents in the map """
 
 running = True
 WINDOW_HEIGHT = 550
@@ -86,7 +79,6 @@ def play_frame(client, town_map, screen, dim, scale):
                          measurements.non_player_agents)
     vehicles = filter(lambda x: x.HasField('vehicle'),
                       measurements.non_player_agents)
-    print(vehicles[0])
     for pedestrian in pedestrians:
         pedestrian = pedestrian.pedestrian
         pygame.draw.ellipse(screen, PEDESTRIAN_COLOR,
