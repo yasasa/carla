@@ -158,6 +158,7 @@ extern "C" {
     uint32_t number_of_waypoints;
     struct carla_vector3d waypoints[MAX_AGENT_CONTROL_WAYPOINTS];
     float waypoint_times[MAX_AGENT_CONTROL_WAYPOINTS];
+    bool reset;
   };
 
   struct carla_vehicle_control{

@@ -243,6 +243,7 @@ namespace server {
                       "for agent id %lu", agent_controls.id());
           }
 
+          walker_controls.reset = agent_controls.walker_control().reset();
           for(size_t i = 0; i < num_waypoints; ++i){
             *(walker_controls.waypoint_times+i) = agent_controls.walker_control().waypoint_times(i);
           }
@@ -267,10 +268,14 @@ namespace server {
 
           // Teleport stuff teleport isnt true
           if(vehicle_controls.teleport){
-            vehicle_controls.teleport_params.location.x = vehicle_control_msg.teleport_params().location().x();
-            vehicle_controls.teleport_params.location.y = vehicle_control_msg.teleport_params().location().y();
-            vehicle_controls.teleport_params.location.z = vehicle_control_msg.teleport_params().location().z();
-            vehicle_controls.teleport_params.rotation.yaw = vehicle_control_msg.teleport_params().rotation().yaw();
+            vehicle_controls.teleport_params.location.x =
+                          vehicle_control_msg.teleport_params().location().x();
+            vehicle_controls.teleport_params.location.y =
+                          vehicle_control_msg.teleport_params().location().y();
+            vehicle_controls.teleport_params.location.z =
+                          vehicle_control_msg.teleport_params().location().z();
+            vehicle_controls.teleport_params.rotation.yaw =
+                        vehicle_control_msg.teleport_params().rotation().yaw();
           }
 
 

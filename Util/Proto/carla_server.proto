@@ -120,6 +120,7 @@ message EpisodeReady {
 message WalkerControl{
   repeated Vector3D waypoints = 1;
   repeated float waypoint_times = 2;
+  bool reset = 3;
 }
 
 message VehicleControl{

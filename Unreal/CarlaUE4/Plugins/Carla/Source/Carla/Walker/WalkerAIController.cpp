@@ -226,8 +226,7 @@ void AWalkerAIController::OnMoveCompleted(
       *GetPawn()->GetActorLocation().ToString(),
       *Result.ToString());
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
-  if (IsClientControlled() && CurrentWaypoint < ControlWaypoints.Num()-1) {
-     CurrentWaypoint++;
+  if (IsClientControlled() && !ControlWaypoints.empty()) {
      SetNavWaypoint();
   } else {
     ChangeStatus(EWalkerStatus::MoveCompleted);
@@ -240,18 +239,18 @@ void AWalkerAIController::RetryMovement(){
 
 bool AWalkerAIController::SetNavWaypoint()
 {
-  auto Target = ControlWaypoints[CurrentWaypoint];
+  if(ControlWaypoints.empty()){
+    return false;
+  }
+
+  auto Target = ControlWaypoints.front();
+  ControlWaypoints.pop();
   auto TimeToNavigate = Target.Key;
   auto Waypoint = Target.Value;
 
   if(TimeToNavigate <= 0){
     GetPawn()->SetActorLocation(Waypoint);
-    if(CurrentWaypoint < ControlWaypoints.Num() - 1){
-      CurrentWaypoint++;
-      return SetNavWaypoint();
-    }else{
-      return false;
-    }
+    return SetNavWaypoint();
   }
 
   // Set the navigation command.
@@ -362,18 +361,18 @@ void AWalkerAIController::OnPawnTookDamage(
 void AWalkerAIController::SetControl(const FSingleAgentControl& Control)
 {
   const FWalkerControl &WalkerControl = Control.WalkerControl;
-  if(!bClientControlled){
-    ControlWaypoints.Empty();
+  if(WalkerControl.bReset){
+    ControlWaypoints = std::queue<TPair<float, FVector>>();
   }
 
   for(int i = 0; i < WalkerControl.Points.Num(); i++){
     auto Time = WalkerControl.Times[i];
     auto Point = WalkerControl.Points[i];
     TPair<float, FVector> Waypoint(Time, Point);
-    ControlWaypoints.Add(Waypoint);
+    ControlWaypoints.push(Waypoint);
   }
 
-  if(!bClientControlled && ControlWaypoints.Num() > 0){
+  if(!bClientControlled || WalkerControl.bReset){
     bClientControlled = SetNavWaypoint();
   }
 }

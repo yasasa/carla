@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <queue>
+
 #include "AIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WalkerAIController.generated.h"
@@ -86,6 +88,5 @@ private:
   float TimeInState=0.0f;
 
   bool bClientControlled=false;
-  size_t CurrentWaypoint;
-  TArray<TPair<float, FVector>> ControlWaypoints;
+  std::queue<TPair<float, FVector>> ControlWaypoints;
 };

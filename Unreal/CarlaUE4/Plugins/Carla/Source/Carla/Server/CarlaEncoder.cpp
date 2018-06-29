@@ -173,6 +173,7 @@ FCarlaEncoder::FCarlaEncoder(carla_agent &InData) : Data(InData) {}
 void FCarlaEncoder::Decode(const carla_walker_control& Data,
                            FWalkerControl& WalkerControl)
 {
+  WalkerControl.bReset = Data.reset;
   for (size_t i = 0; i < Data.number_of_waypoints; i++) {
     const carla_vector3d _Point = Data.waypoints[i];
 

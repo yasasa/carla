@@ -362,11 +362,8 @@ float AWheeledVehicleAIController::Move(const float Speed) {
 void AWheeledVehicleAIController::ApplyAIControl(const FSingleAgentControl& Control){
   if (Control.VehicleControl.bTeleport){
     UE_LOG(LogCarla, Warning, TEXT("Teleporting Vehicle %s"), *GetPawn()->GetName());
-  //  static_cast<UPrimitiveComponent *>(GetPawn()->GetRootComponent())->SetSimulatePhysics(false);
     GetPawn()->SetActorLocation(Control.VehicleControl.TeleportLocation, false, nullptr, ETeleportType::TeleportPhysics);
     GetPawn()->SetActorRotation(Control.VehicleControl.TeleportOrientation, ETeleportType::TeleportPhysics);
-   // GetPawn()->TeleportTo(Control.VehicleControl.TeleportLocation, Control.VehicleControl.TeleportOrientation, false, true);
-//    static_cast<UPrimitiveComponent *>(GetPawn()->GetRootComponent())->SetSimulatePhysics(true);
   }else{
     bAutopilotEnabled = false;
     Vehicle->ApplyVehicleControl(Control.VehicleControl.VehicleControl);

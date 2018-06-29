@@ -18,4 +18,7 @@ struct CARLA_API FWalkerControl
 
   UPROPERTY(Category = "Walker Control", EditAnywhere)
   TArray<float> Times;
+
+  UPROPERTY(Category = "Walker Control", EditAnywhere)
+  bool bReset;
 };
