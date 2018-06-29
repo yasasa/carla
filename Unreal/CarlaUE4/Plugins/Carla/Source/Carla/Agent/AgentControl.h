@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Vehicle/VehicleControl.h"
+#include "Vehicle/AgentVehicleControl.h"
 #include "Walker/WalkerControl.h"
 #include "AgentControl.generated.h"
 
@@ -16,7 +16,7 @@ struct CARLA_API FSingleAgentControl {
   GENERATED_BODY()
 
   UPROPERTY(Category = "Single Agent Control", EditAnywhere)
-  FVehicleControl VehicleControl;
+  FAgentVehicleControl VehicleControl;
 
   UPROPERTY(Category = "Single Agent Control", EditAnywhere)
   FWalkerControl WalkerControl;

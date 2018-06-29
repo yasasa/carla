@@ -256,11 +256,24 @@ namespace server {
         }else if (agent_controls.has_vehicle_control()){
           struct carla_vehicle_control& vehicle_controls =
                                   values.agent_controls[j].vehicle_control;
-          vehicle_controls.steer = agent_controls.vehicle_control().steer();
-          vehicle_controls.throttle = agent_controls.vehicle_control().throttle();
-          vehicle_controls.brake = agent_controls.vehicle_control().brake();
-          vehicle_controls.hand_brake = agent_controls.vehicle_control().hand_brake();
-          vehicle_controls.reverse = agent_controls.vehicle_control().reverse();
+          const auto &vehicle_control_msg = agent_controls.vehicle_control();
+
+          vehicle_controls.steer = vehicle_control_msg.steer();
+          vehicle_controls.throttle = vehicle_control_msg.throttle();
+          vehicle_controls.brake = vehicle_control_msg.brake();
+          vehicle_controls.hand_brake = vehicle_control_msg.hand_brake();
+          vehicle_controls.reverse = vehicle_control_msg.reverse();
+          vehicle_controls.teleport = vehicle_control_msg.teleport();
+
+          // Teleport stuff teleport isnt true
+          if(vehicle_controls.teleport){
+            vehicle_controls.teleport_params.location.x = vehicle_control_msg.teleport_params().location().x();
+            vehicle_controls.teleport_params.location.y = vehicle_control_msg.teleport_params().location().y();
+            vehicle_controls.teleport_params.location.z = vehicle_control_msg.teleport_params().location().z();
+            vehicle_controls.teleport_params.rotation.yaw = vehicle_control_msg.teleport_params().rotation().yaw();
+          }
+
+
         }
       }
       values.number_of_agent_controls = agent_controls_size;

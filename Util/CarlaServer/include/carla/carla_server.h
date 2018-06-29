@@ -166,6 +166,8 @@ extern "C" {
     float brake;
     bool hand_brake;
     bool reverse;
+    bool teleport;
+    struct carla_transform teleport_params;
   };
 
   struct carla_agent_control {

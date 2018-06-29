@@ -185,13 +185,24 @@ void FCarlaEncoder::Decode(const carla_walker_control& Data,
 }
 
 void FCarlaEncoder::Decode(const carla_vehicle_control& Data,
-                           FVehicleControl& VehicleControl)
+                           FAgentVehicleControl& AgentVehicleControl)
 {
+  FVehicleControl &VehicleControl = AgentVehicleControl.VehicleControl;
   VehicleControl.Steer = Data.steer;
   VehicleControl.Throttle = Data.throttle;
   VehicleControl.Brake = Data.brake;
   VehicleControl.bHandBrake = Data.hand_brake;
   VehicleControl.bReverse = Data.reverse;
+
+  AgentVehicleControl.bTeleport = Data.teleport;
+  if(AgentVehicleControl.bTeleport){
+    AgentVehicleControl.TeleportLocation = FVector(Data.teleport_params.location.x * TO_CM,
+                                                    Data.teleport_params.location.y * TO_CM,
+                                                    Data.teleport_params.location.z * TO_CM);
+    AgentVehicleControl.TeleportOrientation = FRotator(Data.teleport_params.rotation.pitch,
+                                                        Data.teleport_params.rotation.yaw,
+                                                        Data.teleport_params.rotation.roll);
+  }
 }
 
 void FCarlaEncoder::Visit(const UTrafficSignAgentComponent &Agent)

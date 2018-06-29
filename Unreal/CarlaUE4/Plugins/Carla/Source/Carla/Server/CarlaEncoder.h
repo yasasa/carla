@@ -54,7 +54,7 @@ class FCarlaEncoder : private IAgentComponentVisitor {
 
   private:
   static void Decode(const carla_walker_control& Data, FWalkerControl& WalkerControl);
-  static void Decode(const carla_vehicle_control& Data, FVehicleControl& AgentControl);
+  static void Decode(const carla_vehicle_control& Data, FAgentVehicleControl& AgentControl);
 
   static void Encode(const UAgentComponent& AgentComponent, carla_agent& Data);
 

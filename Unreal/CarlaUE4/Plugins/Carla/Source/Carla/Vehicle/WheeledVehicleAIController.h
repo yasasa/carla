@@ -8,6 +8,7 @@
 
 #include <queue>
 
+#include "Engine/EngineTypes.h"
 #include "GameFramework/PlayerController.h"
 
 #include "Traffic/TrafficLightState.h"
