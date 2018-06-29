@@ -238,56 +238,53 @@ void AWalkerAIController::RetryMovement(){
   SetNavWaypoint();
 }
 
-void AWalkerAIController::SetNavWaypoint()
+bool AWalkerAIController::SetNavWaypoint()
 {
   auto Target = ControlWaypoints[CurrentWaypoint];
   auto TimeToNavigate = Target.Key;
   auto Waypoint = Target.Value;
 
-    // Set the navigation command.
+  if(TimeToNavigate <= 0){
+    GetPawn()->SetActorLocation(Waypoint);
+    if(CurrentWaypoint < ControlWaypoints.Num() - 1){
+      CurrentWaypoint++;
+      return SetNavWaypoint();
+    }else{
+      return false;
+    }
+  }
+
+  // Set the navigation command.
   FNavPathSharedPtr OutPath = MakeShareable(new FNavigationPath());
   FPathFindingQuery Query;
   FAIMoveRequest MoveReq(Waypoint);
   MoveReq.SetUsePathfinding(true);
-  MoveReq.SetAcceptanceRadius(1.0f);
+  MoveReq.SetAcceptanceRadius(15.0f);
   MoveReq.SetNavigationFilter(DefaultNavigationFilterClass);
   MoveReq.SetReachTestIncludesAgentRadius(false);
   MoveReq.SetCanStrafe(true);
   MoveReq.SetProjectGoalLocation(true);
-  MoveReq.SetAllowPartialPath(true);
+  MoveReq.SetAllowPartialPath(false);
 
   BuildPathfindingQuery(MoveReq, Query);
-
-#ifdef CARLA_AI_WALKERS_EXTRA_LOG
-  if(Query.NavData.IsValid()){
-      FPathFindingResult Res = Query.NavData->FindPath(Query.NavAgentProperties, Query);
-      switch(Res.Result){
-      case ENavigationQueryResult::Invalid:
-        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Invalid"));
-        break;
-      case ENavigationQueryResult::Error:
-        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Error"));
-        break;
-      case ENavigationQueryResult::Fail:
-        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Fail"));
-        break;
-      case ENavigationQueryResult::Success:
-        UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Success"));
-        break;
-      }
-  }
-#endif
-
   FindPathForMoveRequest(MoveReq, Query, OutPath);
-  const bool success = MoveToLocation(Waypoint, 1.0f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
-  UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Success %s"), success? "True": "False");
-
+  const bool Success = MoveToLocation(Waypoint, 1.0f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
+  if(!Success)
+    UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Failed: %s"), *GetPawn()->GetName());
 
   // Get distance, and set appropriate speed
-  const float distance
+  const float Distance
       = OutPath->GetLength();
-  const float speed = distance / TimeToNavigate;
-  static_cast<UCharacterMovementComponent *>(GetPawn()->GetMovementComponent())->MaxWalkSpeed = speed;
+  float Speed = Distance / TimeToNavigate;
+
+  if(Speed > 200){
+    Speed = 200;
+  } else if (Speed < 10){
+    Speed = 10;
+  }
+  static_cast<UCharacterMovementComponent *>(GetPawn()->GetMovementComponent())->MaxWalkSpeed = Speed;
+
+  return Success;
 }
 
 void AWalkerAIController::SenseActors(TArray<AActor*> Actors)
@@ -365,14 +362,20 @@ void AWalkerAIController::OnPawnTookDamage(
 void AWalkerAIController::SetControl(const FSingleAgentControl& Control)
 {
   const FWalkerControl &WalkerControl = Control.WalkerControl;
+  if(!bClientControlled){
+    ControlWaypoints.Empty();
+  }
+
   for(int i = 0; i < WalkerControl.Points.Num(); i++){
-    auto Point = WalkerControl.Points[i];
     auto Time = WalkerControl.Times[i];
+    auto Point = WalkerControl.Points[i];
     TPair<float, FVector> Waypoint(Time, Point);
     ControlWaypoints.Add(Waypoint);
   }
-  bClientControlled = true;
-  SetNavWaypoint();
+
+  if(!bClientControlled && ControlWaypoints.Num() > 0){
+    bClientControlled = SetNavWaypoint();
+  }
 }
 #undef EXTRA_LOG_ONLY
 #undef LOG_AI_WALKER

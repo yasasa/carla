@@ -75,7 +75,7 @@ private:
   UFUNCTION()
   void OnPawnTookDamage(AActor *DamagedActor, float Damage, const UDamageType *DamageType, AController *InstigatedBy, AActor *DamageCauser);
 
-  void SetNavWaypoint();
+  bool SetNavWaypoint();
 
   UPROPERTY(Category = "Walker AI Controller", VisibleAnywhere)
   UAISenseConfig_Sight *SightConfiguration;
