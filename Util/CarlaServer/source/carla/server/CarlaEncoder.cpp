@@ -221,18 +221,24 @@ namespace server {
       values.hand_brake = message->hand_brake();
       values.reverse = message->reverse();
 
+      values.number_of_agent_controls = 0;
+
       size_t agent_controls_size = message->agent_controls_size();
       if(agent_controls_size > MAX_CONTROL_AGENTS){
         agent_controls_size = MAX_CONTROL_AGENTS;
         log_error("Received more than maximum allowed controllable agents");
       }
 
+      values.number_of_agent_controls = agent_controls_size;
       for(size_t j = 0; j < agent_controls_size; j++){
+
+
         auto agent_controls = message->agent_controls(j);
         values.agent_controls[j].id = agent_controls.id();
+        values.agent_controls[j].walker_control.number_of_waypoints = 0;
 
         if(agent_controls.has_walker_control()){
-
+          log_error("id", agent_controls.id());
           struct carla_walker_control& walker_controls =
                             values.agent_controls[j].walker_control;
           size_t num_waypoints = agent_controls.walker_control().waypoints_size();
@@ -266,7 +272,6 @@ namespace server {
           vehicle_controls.reverse = vehicle_control_msg.reverse();
           vehicle_controls.teleport = vehicle_control_msg.teleport();
 
-          // Teleport stuff teleport isnt true
           if(vehicle_controls.teleport){
             vehicle_controls.teleport_params.location.x =
                           vehicle_control_msg.teleport_params().location().x();
@@ -277,11 +282,8 @@ namespace server {
             vehicle_controls.teleport_params.rotation.yaw =
                         vehicle_control_msg.teleport_params().rotation().yaw();
           }
-
-
         }
       }
-      values.number_of_agent_controls = agent_controls_size;
       return true;
     } else {
       log_error("invalid protobuf message: control");

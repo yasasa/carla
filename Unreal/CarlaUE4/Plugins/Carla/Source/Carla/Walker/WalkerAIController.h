@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <queue>
 
 #include "AIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -88,5 +87,5 @@ private:
   float TimeInState=0.0f;
 
   bool bClientControlled=false;
-  std::queue<TPair<float, FVector>> ControlWaypoints;
+  TQueue<TPair<float, FVector>> ControlWaypoints;
 };

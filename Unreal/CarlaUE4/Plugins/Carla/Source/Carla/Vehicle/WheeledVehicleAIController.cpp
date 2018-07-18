@@ -104,9 +104,9 @@ void AWheeledVehicleAIController::Tick(const float DeltaTime)
 {
   Super::Tick(DeltaTime);
 
-  TickAutopilotController();
 
   if (bAutopilotEnabled) {
+    TickAutopilotController();
     Vehicle->ApplyVehicleControl(AutopilotControl);
   }
 }
@@ -360,12 +360,12 @@ float AWheeledVehicleAIController::Move(const float Speed) {
 }
 
 void AWheeledVehicleAIController::ApplyAIControl(const FSingleAgentControl& Control){
+  bAutopilotEnabled = false;
   if (Control.VehicleControl.bTeleport){
     UE_LOG(LogCarla, Warning, TEXT("Teleporting Vehicle %s"), *GetPawn()->GetName());
     GetPawn()->SetActorLocation(Control.VehicleControl.TeleportLocation, false, nullptr, ETeleportType::TeleportPhysics);
     GetPawn()->SetActorRotation(Control.VehicleControl.TeleportOrientation, ETeleportType::TeleportPhysics);
   }else{
-    bAutopilotEnabled = false;
     Vehicle->ApplyVehicleControl(Control.VehicleControl.VehicleControl);
   }
 }

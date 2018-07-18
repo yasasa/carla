@@ -69,6 +69,10 @@ void AWalkerSpawnerBase::BeginPlay()
   // Allocate space for walkers.
   Walkers.Reserve(NumberOfWalkers);
 
+  for(TActorIterator<AWalkerStartSpawnPoint> It(GetWorld()); It; ++It){
+    UE_LOG(LogCarla, Log, TEXT("%s"), *It->GetTransform().ToString());
+  }
+
   // Find spawn points present in level.
   TArray<AWalkerSpawnPointBase*> BeginSpawnPoints;
   for (TActorIterator<AWalkerSpawnPointBase> It(GetWorld()); It; ++It) {

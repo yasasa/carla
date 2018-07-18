@@ -226,7 +226,7 @@ void AWalkerAIController::OnMoveCompleted(
       *GetPawn()->GetActorLocation().ToString(),
       *Result.ToString());
 #endif // CARLA_AI_WALKERS_EXTRA_LOG
-  if (IsClientControlled() && !ControlWaypoints.empty()) {
+  if (IsClientControlled() && !ControlWaypoints.IsEmpty()) {
      SetNavWaypoint();
   } else {
     ChangeStatus(EWalkerStatus::MoveCompleted);
@@ -239,18 +239,30 @@ void AWalkerAIController::RetryMovement(){
 
 bool AWalkerAIController::SetNavWaypoint()
 {
-  if(ControlWaypoints.empty()){
+  if(ControlWaypoints.IsEmpty()){
     return false;
   }
 
-  auto Target = ControlWaypoints.front();
-  ControlWaypoints.pop();
+  TPair<float, FVector> Target;
+  ControlWaypoints.Dequeue(Target);
   auto TimeToNavigate = Target.Key;
   auto Waypoint = Target.Value;
 
   if(TimeToNavigate <= 0){
-    GetPawn()->SetActorLocation(Waypoint);
-    return SetNavWaypoint();
+    bool success = GetPawn()->SetActorLocation(Waypoint);
+    if(success){
+
+      if(ControlWaypoints.Dequeue(Target)){
+        TimeToNavigate = Target.Key;
+        Waypoint = Target.Value;
+      }
+      else{
+        return true;
+      }
+
+    }else{
+      UE_LOG(LogCarla, Warning, TEXT("Failed to teleport %s."), *GetPawn()->GetName());
+    }
   }
 
   // Set the navigation command.
@@ -362,14 +374,16 @@ void AWalkerAIController::SetControl(const FSingleAgentControl& Control)
 {
   const FWalkerControl &WalkerControl = Control.WalkerControl;
   if(WalkerControl.bReset){
-    ControlWaypoints = std::queue<TPair<float, FVector>>();
+    ControlWaypoints.Empty();
   }
 
   for(int i = 0; i < WalkerControl.Points.Num(); i++){
+
     auto Time = WalkerControl.Times[i];
     auto Point = WalkerControl.Points[i];
+
     TPair<float, FVector> Waypoint(Time, Point);
-    ControlWaypoints.push(Waypoint);
+    ControlWaypoints.Enqueue(Waypoint);
   }
 
   if(!bClientControlled || WalkerControl.bReset){
