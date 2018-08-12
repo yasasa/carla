@@ -26,9 +26,9 @@
 
 static constexpr float UPDATE_TIME_IN_SECONDS = 0.6f;
 static constexpr float PREVISION_TIME_IN_SECONDS = 5.0f;
-static constexpr float WALKER_SIGHT_RADIUS = 500.0f;
+static constexpr float WALKER_SIGHT_RADIUS = 100.0f;
 static constexpr float WALKER_SPEED_DAMPING = 4.0f;
-static constexpr float WALKER_PERIPHERAL_VISION_ANGLE_IN_DEGREES = 130.0f;
+static constexpr float WALKER_PERIPHERAL_VISION_ANGLE_IN_DEGREES = 60.0f;
 static constexpr float WALKER_MAX_TIME_PAUSED = 5.0f;
 static constexpr float VEHICLE_SAFETY_RADIUS = 600.0f;
 
@@ -270,7 +270,7 @@ bool AWalkerAIController::SetNavWaypoint()
   FPathFindingQuery Query;
   FAIMoveRequest MoveReq(Waypoint);
   MoveReq.SetUsePathfinding(true);
-  MoveReq.SetAcceptanceRadius(15.0f);
+  MoveReq.SetAcceptanceRadius(0.01f);
   MoveReq.SetNavigationFilter(DefaultNavigationFilterClass);
   MoveReq.SetReachTestIncludesAgentRadius(false);
   MoveReq.SetCanStrafe(true);
@@ -279,7 +279,7 @@ bool AWalkerAIController::SetNavWaypoint()
 
   BuildPathfindingQuery(MoveReq, Query);
   FindPathForMoveRequest(MoveReq, Query, OutPath);
-  const bool Success = MoveToLocation(Waypoint, 1.0f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
+  const bool Success = MoveToLocation(Waypoint, 0.01f, false, true, true, true, nullptr, true) == EPathFollowingRequestResult::RequestSuccessful;
   if(!Success)
     UE_LOG(LogCarla, Warning, TEXT("Waypoint Set Failed: %s"), *GetPawn()->GetName());
 
@@ -290,8 +290,8 @@ bool AWalkerAIController::SetNavWaypoint()
 
   if(Speed > 200){
     Speed = 200;
-  } else if (Speed < 10){
-    Speed = 10;
+  } else if (Speed < 50){
+    Speed = 50;
   }
   static_cast<UCharacterMovementComponent *>(GetPawn()->GetMovementComponent())->MaxWalkSpeed = Speed;
 
@@ -301,7 +301,7 @@ bool AWalkerAIController::SetNavWaypoint()
 void AWalkerAIController::SenseActors(TArray<AActor*> Actors)
 {
   const auto* aPawn = GetPawn();
-  if ((Status == EWalkerStatus::Moving) && (aPawn != nullptr) && IntersectsWithVehicle(*aPawn, Actors)) {
+  if ((Status == EWalkerStatus::Moving) && (aPawn != nullptr) && IntersectsWithVehicle(*aPawn, Actors) && !IsClientControlled()) {
     TryPauseMovement();
   }
 }
